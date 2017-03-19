@@ -1,6 +1,7 @@
 /* 
- * udpclient.c - A simple UDP client
- * usage: udpclient <host> <port>
+ * gcc -o node -pthread main.c 
+ *
+ * usage: node
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +25,7 @@
 #define INTERVAL 5           /* period of Data collection data 10 sec   */
 
 #define BUFSIZE 64
-#define PORT    3000
+#define PORT    3000         /* Listening port  */
 #define TIMEOUT 1000         /* I/O timeout 1 milli sec */ 
 #define MAX_IP  253
 #define OK      0
@@ -151,8 +152,6 @@ get_sensor_info()
                 count_illummination++;
             }
 
-            // printf("%x %x  %x %x    %x %x  %x %x\n", 
-            //     msg.data[0], msg.data[1],msg.data[2],msg.data[3],msg.data[4],msg.data[5],msg.data[6],msg.data[7]);    
         }
 
         if (scan[i] == SELF_IP) {
@@ -190,8 +189,6 @@ get_sensor_info()
             
             int len = client( sin.s_addr, &msg, sizeof(average_data) + 1 );
 
-            // printf("%x %x  %x %x    %x %x  %x %x\n", 
-            //     msg.data[0], msg.data[1],msg.data[2],msg.data[3],msg.data[4],msg.data[5],msg.data[6],msg.data[7]);    
         }
     }
 
@@ -266,12 +263,6 @@ client( unsigned long ip, message* msg, int message_lenght )
  
     n = recvfrom(sockfd, buf, BUFSIZE, 0,(struct sockaddr *) &serveraddr, &serverlen);
     close(sockfd);
-
-    // printf("type=%d %s receive %d bytes\n",
-    //      msg->type,inet_ntoa((struct in_addr)serveraddr.sin_addr) ,(int)n);
-    // printf("%x %x  %x %x    %x %x   %x %x\n", 
-    //     (uint8_t)buf[0], (uint8_t)buf[1],(uint8_t)buf[2],(uint8_t)buf[3],(uint8_t)buf[4],
-    //     (uint8_t)buf[5],(uint8_t)buf[6],(uint8_t)buf[7]);
 
     if (n == 0 ) {
         return 1;
@@ -418,18 +409,11 @@ server(void* arg)
                 sensor_data* p = (sensor_data*) &buf;
                 emulate_sensor(p);
                 len = sizeof(sensor_data);
-                // printf("client:  %s sent [%d bytes] type=%d  T=%d L=%d\n", 
-                    // inet_ntoa(clientaddr.sin_addr), len,
-                    // msg.type, p->temperature, p->illumination);
                 break;
             }
             
             case average_info: {
                 average_data* p = (average_data*) &(msg.data);
-
-        // printf("%x %x  %x %x    %x %x   %x %x\n", 
-        //     (uint8_t)buf[0], (uint8_t)buf[1],(uint8_t)buf[2],(uint8_t)buf[3],(uint8_t)buf[4],
-        //     (uint8_t)buf[5],(uint8_t)buf[6],(uint8_t)buf[7]);
 
                 printf("client [%d]:  %s  average_data: T %6.2f\tL  %6.2f\n",
                     n, inet_ntoa(clientaddr.sin_addr), p->temperature, p->illumination );
@@ -456,11 +440,6 @@ server(void* arg)
                 printf("client:  %s  type=%d\n", inet_ntoa(clientaddr.sin_addr),
                     msg.type);
         }
-
- 
-        // printf("%x %x  %x %x    %x %x   %x %x\n", 
-        //     (uint8_t)buf[0], (uint8_t)buf[1],(uint8_t)buf[2],(uint8_t)buf[3],(uint8_t)buf[4],
-        //     (uint8_t)buf[5],(uint8_t)buf[6],(uint8_t)buf[7]);
 
         n = sendto(sockfd, buf, len, 0, 
              (struct sockaddr *) &clientaddr, clientlen);
@@ -517,8 +496,8 @@ alarm_wakeup (int i)
             }            
         }
     }
-    // printf("%d sec up partner, Wakeup!!!\n",INTERVAL);
 }
+
 
 int 
 main(int argc, char **argv) 
